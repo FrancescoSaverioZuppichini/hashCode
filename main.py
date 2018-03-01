@@ -3,7 +3,7 @@ import numpy as np
 def distance(pos, target):
     return np.abs(pos[0] - target[0]) + np.abs(pos[1] - target[1])
 
-FILE_PATH = './b_should_be_easy.in'
+FILE_PATH = './e_high_bonus.in'
 
 with open(FILE_PATH, encoding='utf-8') as file:
     lines = file.readlines()
@@ -83,10 +83,14 @@ class Simulation:
 
         for k, v in schedule.items():
             schedule[k].pop(0)
+            sap = ''
+            for dio in  v:
+                sap += ' ' + str(dio[0])
+            self.solution.append('{} {}'.format(k.id, sap))
             for i in range(len(schedule[k])):
                 schedule[k][i] = schedule[k][i][1]
                 k.rides = schedule[k]
-                k.target= k.rides[0].start_pos
+                k.target=  schedule[k][0].start_pos
 
 
     def run(self,print_map=True):
@@ -101,7 +105,10 @@ class Simulation:
             if print_map:
                 self.print()
 
-        print('Final results', self.points, self.solution, sep='\n-----------\n\t')
+        print('Final results', self.points, sep='\n-----------\n\t')
+
+        for s in self.solution:
+            print(s)
 
 
 class Ride:
@@ -129,7 +136,7 @@ class Car:
     def free(self):
         if self.sim.time == self.rides[0].early_step:
             self.state = 'o'
-            self.target = self.rides[0].latest_step
+            self.target = self.rides[0].finish_pos
         else:
             px = self.pos[0]
             py = self.pos[1]
@@ -162,10 +169,12 @@ class Car:
         else: # same place as target
             if self.state == 'o':
                 self.state = 'f'
-                self.rides.pop()
+                rr = self.rides.pop()
+
+                self.sim.points += distance(rr.start_pos, rr.finish_pos)
 
                 self.target = self.rides[0].start_pos
-                if self.pos == self.target:
+                if np.all(self.pos == self.target):
                     self.free()
                 else:
                     tx = self.target[0]
@@ -184,4 +193,3 @@ class Car:
 
 sim = Simulation(problem)
 sim.run(False)
-
