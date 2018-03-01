@@ -39,6 +39,6 @@ class Car:
     def __init__(self, id):
         self.id = id
         self.pos = None
-        self.state = None
+        self.state = None # F = free, S = stand by, O = occupied
         self.target = None
         self.rides = []
