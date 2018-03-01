@@ -1,5 +1,8 @@
 import numpy as np
 
+def distance(pos, target):
+    return np.abs(pos[0] - target[0]) + np.abs(pos[1] - target[1])
+
 FILE_PATH = './a_example.in'
 
 with open(FILE_PATH, encoding='utf-8') as file:
@@ -36,8 +39,8 @@ class Simulation:
         self.points = 0
 
         self.time = 0
-        self.rides = [Ride(r, r) for r in range(self.n_rides)]
-        self.cars = [Car(c) for c in range(self.n_vehicles)]
+        self.rides = [Ride(row, id) for id, row in enumerate(d['data'])]
+        self.cars = [Car(c, self) for c in range(self.n_vehicles)]
 
     def print(self):
         smap = [['.'] * self.columns] * self.rows
@@ -45,17 +48,53 @@ class Simulation:
         for car in self.cars:
             x = car.pos[0]
             y = car.pos[0]
-            smap[x][y] = self.state
+            smap[x][y] = '9'
 
         for i in range(self.rows):
             for j in range(self.columns):
                 print(smap[i][j], end='')
             print('')
 
+    def plan(self):
+        schedule = {v: [[0, None]] for k, v in enumerate(self.cars)}
+
+        for ride in self.rides:
+            for car in self.cars:
+                print(car.pos)
+                if ride.free:
+
+                    car_start_before = float('inf')
+                    car_start = None
+                    car_total = 0
+
+                    for other_car in self.cars:
+                        d_car_to_start = distance(other_car.pos, ride.start_pos)
+                        d_start_to_finish = distance(ride.start_pos, ride.finish_pos)
+                        d_so_far = schedule[other_car][-1][0]
+                        total = d_car_to_start + d_start_to_finish + d_so_far
+                        if d_so_far < car_start_before:
+                            car_start_before = d_so_far
+                            car_start = other_car
+                            car_total = total
+
+                    car_start.pos = ride.finish_pos
+                    schedule[car_start].append([car_total, ride])
+                    ride.free = False
+
+        for k, v in schedule.items():
+            schedule[k].pop(0)
+            for i in range(len(schedule[k])):
+                schedule[k][i] = schedule[k][i][1]
+                k.rides = schedule[k]
+                k.target=k.rides[0].start_pos
+
+
     def run(self,print_map=True):
+        self.plan()
+
         for self.time in range(0, self.steps):
             for car in self.cars:
-                car.step()
+                car.lifeCycle()
 
             if print_map:
                 self.print()
@@ -64,39 +103,26 @@ class Simulation:
 
 
 class Ride:
-    def __init__(self, id, row):
-        self.done = False,
-        self.start_pos = row[0:2]
+    def __init__(self, row, id):
+        self.id = id
+        self.free = True
+        self.done = False
+        self.start_pos = row[0:2]  # it was 'from'
         self.finish_pos = row[2:4]
         self.early_step = row[4]
         self.latest_step = row[-1]
 
-
-print(Ride(1, problem['data'][0]).__dict__)
-
+    def __str__(self):
+        return str("({})-({})".format(self.start_pos, self.finish_pos))
 
 class Car:
     def __init__(self, id,simulation):
         self.id = id #car id
-        self.pos = None #car position
+        self.pos = np.array([0,0]) #car position
         self.state = 'f' # o = free, o = occupied
-        self.target_pos = None #next position to reach
+        self.target = None #next position to reach
         self.rides = [] #rides stack
         self.sim = simulation
-
-    def movement(self):
-        #check dist == 0
-        if np.abs(self.target_pos[0]-self.pos[0])>=np.abs(self.target_pos[1]-self.pos[1]):
-            if self.target_pos[0]>self.pos[0]:
-                self.pos[0]+=1
-            else:
-                self.pos[0]-=1# CASO distanza =0 ???
-        else:
-            if self.target_pos[1]>self.pos[1]:
-                self.pos[1]+=1
-            else:
-                self.pos[1]-=1# CASO distanza =0 ???
-
 
     def free(self):
         if self.sim.time == self.rides[0].early_step:
@@ -116,7 +142,6 @@ class Car:
                 self.pos[1] -= 1
             else:
                 self.pos[1] += 1
-
 
     def lifeCycle(self):
         px = self.pos[0]
@@ -154,6 +179,7 @@ class Car:
                         self.pos[1] += 1
             else:
                 self.free()
-#
-sim= Simulation()
+
+sim = Simulation(problem)
 sim.run()
+
