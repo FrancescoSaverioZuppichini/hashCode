@@ -36,9 +36,28 @@ print(Ride(1, problem['data'][0]).__dict__)
 
 
 class Car:
-    def __init__(self, id):
-        self.id = id
-        self.pos = None
-        self.state = None # F = free, S = stand by, O = occupied
-        self.target = None
-        self.rides = []
+    def __init__(self, id,simulation):
+        self.id = id #car id
+        self.ride_id = None #current ride id
+        self.pos = None #car position
+        self.state = 'f' # F = free, O = occupied
+        self.target_pos = None #next position to reach
+        self.rides = [] #rides stack ride,state,id
+        self.sim = simulation
+
+    def movement(self):
+        #check dist == 0
+        if np.abs(self.target_pos[0]-self.pos[0])>=np.abs(self.target_pos[1]-self.pos[1]):
+            if self.target_pos[0]>self.pos[0]:
+                self.pos[0]+=1
+            else:
+                self.pos[0]-=1# CASO distanza =0 ???
+        else:
+            if self.target_pos[1]>self.pos[1]:
+                self.pos[1]+=1
+            else:
+                self.pos[1]-=1# CASO distanza =0 ???
+
+    def lifeCycle(self):
+        ada=1
+
