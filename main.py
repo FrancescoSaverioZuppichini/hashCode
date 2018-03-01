@@ -3,7 +3,7 @@ import numpy as np
 def distance(pos, target):
     return np.abs(pos[0] - target[0]) + np.abs(pos[1] - target[1])
 
-FILE_PATH = './a_example.in'
+FILE_PATH = './b_should_be_easy.in'
 
 with open(FILE_PATH, encoding='utf-8') as file:
     lines = file.readlines()
@@ -42,7 +42,7 @@ class Simulation:
         self.rides = [Ride(row, id) for id, row in enumerate(d['data'])]
         self.cars = [Car(c, self) for c in range(self.n_vehicles)]
 
-    def print(self):
+    def printFra(self):
         smap = [['.'] * self.columns] * self.rows
 
         for car in self.cars:
@@ -60,7 +60,7 @@ class Simulation:
 
         for ride in self.rides:
             for car in self.cars:
-                print(car.pos)
+                # print(car.pos)
                 if ride.free:
 
                     car_start_before = float('inf')
@@ -86,14 +86,16 @@ class Simulation:
             for i in range(len(schedule[k])):
                 schedule[k][i] = schedule[k][i][1]
                 k.rides = schedule[k]
-                k.target=k.rides[0].start_pos
+                k.target= k.rides[0].start_pos
 
 
     def run(self,print_map=True):
         self.plan()
 
         for self.time in range(0, self.steps):
+            # print(self.time)
             for car in self.cars:
+                # print(car.id)
                 car.lifeCycle()
 
             if print_map:
@@ -181,5 +183,5 @@ class Car:
                 self.free()
 
 sim = Simulation(problem)
-sim.run()
+sim.run(False)
 
