@@ -38,11 +38,10 @@ print(Ride(1, problem['data'][0]).__dict__)
 class Car:
     def __init__(self, id,simulation):
         self.id = id #car id
-        self.ride_id = None #current ride id
         self.pos = None #car position
-        self.state = 'f' # F = free, O = occupied
+        self.state = 'f' # o = free, o = occupied
         self.target_pos = None #next position to reach
-        self.rides = [] #rides stack ride,state,id
+        self.rides = [] #rides stack
         self.sim = simulation
 
     def movement(self):
